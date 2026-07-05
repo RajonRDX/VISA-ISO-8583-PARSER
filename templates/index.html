@@ -24,31 +24,49 @@
   header h1 { font-size: 18px; margin: 0; }
   header h1 span { color: var(--accent); margin-right: 8px; }
   header .sub { font-size: 12px; color: #90B4CC; }
+
   main {
-    max-width: 1100px; margin: 24px auto; padding: 0 16px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    max-width: 1500px; margin: 20px auto; padding: 0 16px;
+    display: grid; grid-template-columns: 4fr 6fr 2.4fr; gap: 14px;
+    align-items: start;
   }
-  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  @media (max-width: 1100px) { main { grid-template-columns: 1fr 1fr; } .sidebar { grid-column: 1 / -1; } }
+  @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+
   .panel { background: var(--bg2); border-radius: 6px; padding: 16px; }
-  .panel h2 { font-size: 13px; color: var(--accent); text-transform: uppercase;
-              letter-spacing: 0.05em; margin: 0 0 10px 0; }
+  .panel h2 {
+    font-size: 12px; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 0.05em; margin: 0 0 10px 0; display: flex;
+    justify-content: space-between; align-items: center;
+  }
+  .panel h2 .btns { display: flex; gap: 6px; }
+
   textarea {
-    width: 100%; min-height: 260px; background: var(--bg3); color: var(--text);
+    width: 100%; min-height: 300px; background: var(--bg3); color: var(--text);
     border: 1px solid var(--border); border-radius: 4px; padding: 10px;
     font-family: Consolas, monospace; font-size: 13px; resize: vertical;
   }
+
   button {
     background: var(--accent); color: #0D1B2A; border: none; border-radius: 4px;
-    padding: 10px 18px; font-weight: bold; font-size: 14px; cursor: pointer;
-    margin-top: 10px;
+    padding: 9px 16px; font-weight: bold; font-size: 13px; cursor: pointer;
   }
   button:hover { background: var(--accent2); color: var(--text); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.secondary { background: var(--bg3); color: var(--text); }
-  #output {
-    font-family: Consolas, monospace; font-size: 12.5px; white-space: pre-wrap;
-    max-height: 480px; overflow: auto; line-height: 1.5;
+  button.secondary { background: var(--bg3); color: var(--text); font-weight: normal; padding: 7px 12px; font-size: 12px; }
+  button.secondary:hover { background: var(--border); }
+  button.block { width: 100%; margin-bottom: 8px; text-align: left; }
+  button.block.accent { background: var(--accent); color: #0D1B2A; }
+  button.block.normal { background: var(--accent2); color: var(--text); }
+  button.block.normal:hover { background: var(--accent); color: #0D1B2A; }
+
+  .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  input[type=text] {
+    background: var(--bg3); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 8px 10px; font-family: Consolas, monospace;
+    flex: 1; min-width: 160px;
   }
+
   .badge {
     display: inline-block; padding: 3px 10px; border-radius: 12px;
     font-size: 12px; font-weight: bold;
@@ -56,18 +74,58 @@
   .badge.ok { background: rgba(46,204,113,0.15); color: var(--success); }
   .badge.warn { background: rgba(243,156,18,0.15); color: var(--warning); }
   .badge.err { background: rgba(231,76,60,0.15); color: var(--error); }
-  .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-  input[type=text] {
-    background: var(--bg3); color: var(--text); border: 1px solid var(--border);
-    border-radius: 4px; padding: 8px 10px; font-family: Consolas, monospace;
+  #status { font-size: 13px; margin-top: 10px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    background: var(--bg3); color: var(--text-dim); border: none; border-radius: 4px 4px 0 0;
+    padding: 8px 16px; font-size: 12px; cursor: pointer; font-weight: normal;
   }
-  .field-name { color: #7EC8E3; font-weight: bold; }
+  .tab-btn.active { background: var(--accent2); color: var(--text); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  #outputDetailed {
+    font-family: Consolas, monospace; font-size: 12.5px; white-space: pre-wrap;
+    max-height: 560px; overflow: auto; line-height: 1.6;
+  }
+  #outputCompact {
+    font-family: Consolas, monospace; font-size: 12.5px; white-space: pre-wrap;
+    word-break: break-all; color: var(--highlight); max-height: 560px; overflow: auto;
+  }
+  #outputFields { max-height: 560px; overflow: auto; }
+
+  .section { color: var(--accent); font-weight: bold; margin: 14px 0 4px 0; font-family: Consolas, monospace; }
+  .section:first-child { margin-top: 0; }
+  .field-name { color: #7EC8E3; font-weight: bold; margin-top: 8px; }
   .field-key { color: var(--text-dim); }
   .field-val { color: var(--text); }
+  .indent { margin-left: 14px; }
   .warn-line { color: var(--warning); }
   .err-line { color: var(--error); }
+  .mti { color: var(--highlight); font-weight: bold; }
+  .bitmap { color: #A8D8EA; }
+  .empty { color: var(--text-dim); font-style: italic; }
+
+  table.fields-table { width: 100%; border-collapse: collapse; font-family: Consolas, monospace; font-size: 12px; }
+  table.fields-table th {
+    background: var(--accent2); color: var(--text); text-align: left;
+    padding: 6px 8px; position: sticky; top: 0;
+  }
+  table.fields-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.fields-table tr:hover td { background: var(--bg3); }
+
+  /* Sidebar */
+  .sidebar .card-row {
+    display: flex; justify-content: space-between; gap: 8px;
+    background: var(--bg3); border-radius: 4px; padding: 7px 10px; margin-bottom: 6px;
+  }
+  .sidebar .card-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; white-space: nowrap; }
+  .sidebar .card-value { font-family: Consolas, monospace; font-size: 12px; font-weight: bold; text-align: right; word-break: break-all; }
+  .sidebar hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
   footer { text-align: center; color: var(--text-dim); font-size: 11px; padding: 24px 0; }
-  #status { font-size: 13px; color: var(--text-dim); margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -78,25 +136,34 @@
 </header>
 
 <main>
+  <!-- INPUT PANEL -->
   <div class="panel">
-    <h2>▸ Raw Hex Input</h2>
-    <textarea id="rawInput" placeholder="Paste raw VisaNet ISO 8583 hex dump or log fragment here…"></textarea>
+    <h2>
+      ▸ Raw Hex Input
+      <span class="btns">
+        <button class="secondary" id="loadFileBtn">📂 Load File</button>
+        <button class="secondary" id="clearBtn">✕ Clear</button>
+      </span>
+    </h2>
+    <input type="file" id="fileInput" accept=".txt,.log" style="display:none">
+    <textarea id="rawInput" placeholder="Paste raw VisaNet ISO 8583 hex dump or log fragment here…
+Example: 3230303030313031383030…  (header + MTI + bitmaps + fields, hex-encoded)"></textarea>
     <div class="row">
-      <button id="parseBtn">⚡ Parse Message</button>
-      <button class="secondary" id="clearBtn">✕ Clear</button>
+      <button id="parseBtn" style="flex:1">⚡ PARSE MESSAGE</button>
     </div>
+
     <div id="status">
       {% if unlocked %}
         <span class="badge ok">Unlimited (key unlocked)</span>
       {% else %}
-        <span class="badge {{ 'ok' if remaining > 3 else ('warn' if remaining > 0 else 'err') }}">
+        <span class="badge {{ 'ok' if remaining > 3 else ('warn' if remaining > 0 else 'err') }}" id="statusBadge">
           {{ remaining }} free parse{{ '' if remaining == 1 else 's' }} left
         </span>
       {% endif %}
     </div>
 
     {% if not unlocked %}
-    <div class="row" style="margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
+    <div class="row" style="margin-top:14px; border-top:1px solid var(--border); padding-top:14px;">
       <input type="text" id="keyInput" placeholder="Have a license key? Enter it here">
       <button class="secondary" id="redeemBtn">Unlock</button>
     </div>
@@ -104,106 +171,286 @@
     {% endif %}
   </div>
 
+  <!-- OUTPUT PANEL -->
   <div class="panel">
-    <h2>▸ Decoded Output</h2>
-    <div id="output">Parse a message to see results here.</div>
+    <h2>
+      ▸ Decoded Output
+      <span class="btns">
+        <button class="secondary" id="copyBtn">⎘ Copy</button>
+      </span>
+    </h2>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="detailed">Detailed View</button>
+      <button class="tab-btn" data-tab="compact">Compact Output</button>
+      <button class="tab-btn" data-tab="fields">Fields Table</button>
+    </div>
+    <div class="tab-panel active" id="tab-detailed">
+      <div id="outputDetailed"><span class="empty">Parse a message to see results here.</span></div>
+    </div>
+    <div class="tab-panel" id="tab-compact">
+      <div id="outputCompact"><span class="empty">Parse a message to see the compact output here.</span></div>
+    </div>
+    <div class="tab-panel" id="tab-fields">
+      <div id="outputFields"><span class="empty">Parse a message to see the fields table here.</span></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="panel sidebar">
+    <h2>▸ Quick Summary</h2>
+    <div class="card-row"><span class="card-label">MTI</span><span class="card-value" id="sumMti">—</span></div>
+    <div class="card-row"><span class="card-label">Proc. Code</span><span class="card-value" id="sumProc">—</span></div>
+    <div class="card-row"><span class="card-label">Amount</span><span class="card-value" id="sumAmt">—</span></div>
+    <div class="card-row"><span class="card-label">RRN</span><span class="card-value" id="sumRrn">—</span></div>
+    <div class="card-row"><span class="card-label">Response</span><span class="card-value" id="sumResp">—</span></div>
+    <div class="card-row"><span class="card-label">STAN</span><span class="card-value" id="sumStan">—</span></div>
+    <div class="card-row"><span class="card-label">PAN</span><span class="card-value" id="sumPan">—</span></div>
+    <div class="card-row"><span class="card-label">Terminal</span><span class="card-value" id="sumTerm">—</span></div>
+    <div class="card-row"><span class="card-label">Warnings</span><span class="card-value" id="sumWarn" style="color:var(--success)">0</span></div>
+
+    <hr>
+    <h2>▸ Export</h2>
+    <button class="block normal" id="exportTxtBtn">💾 Save TXT Report</button>
+    <button class="block normal" id="exportXlsxBtn" {% if not has_openpyxl %}disabled{% endif %}>📊 Save Excel Workbook</button>
+    <button class="block accent" id="exportBothBtn" {% if not has_openpyxl %}disabled{% endif %}>⬇ Save Both (TXT + Excel)</button>
+    {% if not has_openpyxl %}
+    <div style="font-size:11px; color:var(--warning); margin-top:4px;">⚠ openpyxl not installed on server<br>Excel export disabled</div>
+    {% endif %}
+    <div id="exportStatus" style="font-size:11px; color:var(--text-dim); margin-top:8px;"></div>
   </div>
 </main>
 
 <footer>
   Please avoid pasting real production cardholder data into public tools.
-  Nothing typed here is stored beyond generating the result below.
+  Nothing typed here is stored beyond generating the result/export below.
 </footer>
 
 <script>
 const rawInput = document.getElementById('rawInput');
-const output = document.getElementById('output');
-const status = document.getElementById('status');
 const parseBtn = document.getElementById('parseBtn');
+const outputDetailed = document.getElementById('outputDetailed');
+const outputCompact = document.getElementById('outputCompact');
+const outputFields = document.getElementById('outputFields');
+const statusDiv = document.getElementById('status');
+const exportStatus = document.getElementById('exportStatus');
+
+let lastResult = null, lastWarnings = [], lastCompact = '', lastRaw = '';
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function renderResult(payload) {
-  const r = payload.result;
-  let html = '';
-  html += `<div class="field-name">MTI</div>`;
-  if (r.MTI) {
-    html += `<div><span class="field-key">${escapeHtml(r.MTI.Code)}</span> — <span class="field-val">${escapeHtml(r.MTI.Description)}</span></div>`;
-  }
-  if (r.BITMAP) {
-    html += `<br><div class="field-name">BITMAP</div>`;
-    html += `<div class="field-key">Primary:</div> <span class="field-val">${escapeHtml(r.BITMAP['Primary (hex)'])}</span><br>`;
-    html += `<div class="field-key">Secondary:</div> <span class="field-val">${escapeHtml(r.BITMAP['Secondary (hex)'])}</span><br>`;
-    html += `<div class="field-key">Fields present:</div> <span class="field-val">${escapeHtml(JSON.stringify(r.BITMAP['Fields present']))}</span>`;
-  }
-  if (r.FIELDS) {
-    html += `<br><br><div class="field-name">DATA ELEMENTS</div>`;
-    const sortedFields = Object.entries(r.FIELDS).sort((a, b) => {
-    const numA = parseInt(a[0].match(/\d+/)[0]);
-    const numB = parseInt(b[0].match(/\d+/)[0]);
-    return numA - numB;
+// ---- Tabs ----
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
 });
 
-for (const [fname, fval] of sortedFields) {
-      html += `<br><div class="field-name">${escapeHtml(fname)}</div>`;
+// ---- Rendering ----
+function fieldsByNum(fields) {
+  const out = {};
+  for (const k of Object.keys(fields || {})) {
+    const m = k.match(/^F(\d+)/);
+    if (m) out[parseInt(m[1], 10)] = fields[k];
+  }
+  return out;
+}
+function firstVal(v) {
+  if (v === undefined || v === null) return '';
+  if (typeof v === 'object') {
+    for (const val of Object.values(v)) if (val) return String(val);
+    return '';
+  }
+  return String(v);
+}
+function sortedFieldEntries(fields) {
+  return Object.entries(fields || {}).sort((a, b) => {
+    const na = parseInt((a[0].match(/\d+/) || ['0'])[0], 10);
+    const nb = parseInt((b[0].match(/\d+/) || ['0'])[0], 10);
+    return na - nb;
+  });
+}
+
+function renderDetailed(result, warnings) {
+  let html = '';
+  if (result.MSG_HEADER) {
+    html += '<div class="section">▸ MESSAGE HEADER (H1–H14)</div>';
+    for (const [k, v] of Object.entries(result.MSG_HEADER)) {
+      html += `<div><span class="field-key">${escapeHtml(k)}:</span> <span class="field-val">${escapeHtml(v)}</span></div>`;
+    }
+  }
+  if (result.MTI) {
+    html += '<div class="section">▸ MTI – Message Type Identifier</div>';
+    html += `<div><span class="mti">${escapeHtml(result.MTI.Code || '')}</span> <span class="field-val">${escapeHtml(result.MTI.Description || '')}</span></div>`;
+  }
+  if (result.BITMAP) {
+    const b = result.BITMAP;
+    html += '<div class="section">▸ BITMAP</div>';
+    html += `<div><span class="field-key">Primary (hex):</span> <span class="bitmap">${escapeHtml(b['Primary (hex)'])}</span></div>`;
+    html += `<div><span class="field-key">Secondary (hex):</span> <span class="bitmap">${escapeHtml(b['Secondary (hex)'])}</span></div>`;
+    html += `<div><span class="field-key">Fields present:</span> <span class="field-val">${escapeHtml(JSON.stringify(b['Fields present']))}</span></div>`;
+  }
+  if (result.FIELDS) {
+    html += '<div class="section">▸ DATA ELEMENTS</div>';
+    for (const [fname, fval] of sortedFieldEntries(result.FIELDS)) {
+      html += `<div class="field-name">${escapeHtml(fname)}</div>`;
       if (typeof fval === 'object') {
         for (const [k, v] of Object.entries(fval)) {
-          if (v) html += `<div><span class="field-key">${escapeHtml(k)}:</span> <span class="field-val">${escapeHtml(v)}</span></div>`;
+          if (v) html += `<div class="indent"><span class="field-key">${escapeHtml(k)}:</span> <span class="field-val">${escapeHtml(v)}</span></div>`;
         }
       } else if (fval) {
-        html += `<div><span class="field-key">Value:</span> <span class="field-val">${escapeHtml(fval)}</span></div>`;
+        html += `<div class="indent"><span class="field-key">Value:</span> <span class="field-val">${escapeHtml(fval)}</span></div>`;
       }
     }
   }
-  if (payload.warnings && payload.warnings.length) {
-    html += `<br><div class="field-name">WARNINGS</div>`;
-    for (const w of payload.warnings) {
-      html += `<div class="warn-line">${escapeHtml(w)}</div>`;
+  if (result.PARSE_ERRORS) {
+    html += '<div class="section">▸ PARSE ERRORS</div>';
+    for (const [k, v] of Object.entries(result.PARSE_ERRORS)) {
+      html += `<div class="err-line">${escapeHtml(k)}: ${escapeHtml(v)}</div>`;
     }
   }
-  html += `<br><br><div class="field-name">COMPACT OUTPUT</div><div class="field-val">${escapeHtml(payload.compact)}</div>`;
-  output.innerHTML = html;
+  if (warnings && warnings.length) {
+    html += '<div class="section">▸ WARNINGS</div>';
+    for (const w of warnings) {
+      html += `<div class="${w.includes('🔴') ? 'err-line' : 'warn-line'}">${escapeHtml(w)}</div>`;
+    }
+  }
+  outputDetailed.innerHTML = html || '<span class="empty">No data decoded.</span>';
 }
 
-function updateStatus(remaining) {
-  if (remaining === null || remaining === undefined) return;
-  let cls = remaining > 3 ? 'ok' : (remaining > 0 ? 'warn' : 'err');
-  status.innerHTML = `<span class="badge ${cls}">${remaining} free parse${remaining === 1 ? '' : 's'} left</span>`;
+function renderCompact(compact) {
+  outputCompact.textContent = compact || '';
 }
 
+function renderFieldsTable(result) {
+  if (!result.FIELDS || Object.keys(result.FIELDS).length === 0) {
+    outputFields.innerHTML = '<span class="empty">No fields present.</span>';
+    return;
+  }
+  let rows = '';
+  for (const [fname, fval] of sortedFieldEntries(result.FIELDS)) {
+    const parts = fname.split(/\s+/);
+    const fnumStr = parts[0];
+    const nameLabel = parts.slice(1).join(' ');
+    const items = (typeof fval === 'object')
+      ? Object.entries(fval).filter(([, v]) => v)
+      : [['Value', fval]];
+    items.forEach(([k, v], idx) => {
+      rows += `<tr>
+        <td>${idx === 0 ? escapeHtml(fnumStr) : ''}</td>
+        <td>${idx === 0 ? escapeHtml(nameLabel) : ''}</td>
+        <td>${escapeHtml(k)}</td>
+        <td>${escapeHtml(String(v))}</td>
+      </tr>`;
+    });
+  }
+  outputFields.innerHTML = `<table class="fields-table">
+    <thead><tr><th>Field</th><th>Name</th><th>Sub-Field / Key</th><th>Value</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function updateSummary(result, warnings) {
+  const byNum = fieldsByNum(result.FIELDS);
+  const mtiInfo = result.MTI || {};
+  document.getElementById('sumMti').textContent = `${mtiInfo.Code || '—'} ${mtiInfo.Description || ''}`.trim();
+  document.getElementById('sumProc').textContent = firstVal(byNum[3]) || '—';
+  document.getElementById('sumAmt').textContent = firstVal(byNum[4]) || '—';
+  document.getElementById('sumRrn').textContent = firstVal(byNum[37]) || '—';
+  document.getElementById('sumResp').textContent = firstVal(byNum[39]) || '—';
+  document.getElementById('sumStan').textContent = firstVal(byNum[11]) || '—';
+  document.getElementById('sumPan').textContent = firstVal(byNum[2]) || '—';
+  document.getElementById('sumTerm').textContent = firstVal(byNum[41]) || '—';
+  const wc = (warnings || []).length;
+  const warnEl = document.getElementById('sumWarn');
+  warnEl.textContent = wc;
+  warnEl.style.color = wc > 0 ? 'var(--error)' : 'var(--success)';
+}
+
+function updateStatusBadge(remaining) {
+  const badge = document.getElementById('statusBadge');
+  if (!badge || remaining === null || remaining === undefined) return;
+  const cls = remaining > 3 ? 'ok' : (remaining > 0 ? 'warn' : 'err');
+  badge.className = `badge ${cls}`;
+  badge.textContent = `${remaining} free parse${remaining === 1 ? '' : 's'} left`;
+}
+
+// ---- Parse ----
 parseBtn.addEventListener('click', async () => {
   const raw = rawInput.value;
-  if (!raw.trim()) { output.textContent = 'Paste a hex message first.'; return; }
+  if (!raw.trim()) {
+    outputDetailed.innerHTML = '<span class="err-line">Paste a hex message first.</span>';
+    return;
+  }
   parseBtn.disabled = true; parseBtn.textContent = '⏳ Parsing…';
   try {
     const resp = await fetch('/parse', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({raw})
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw })
     });
     const payload = await resp.json();
     if (!resp.ok) {
-      output.innerHTML = `<span class="err-line">${escapeHtml(payload.error || 'Parse failed.')}</span>`;
-      if (payload.limit_reached) {
-        window.location.reload();
-      }
+      outputDetailed.innerHTML = `<span class="err-line">${escapeHtml(payload.error || 'Parse failed.')}</span>`;
+      if (payload.limit_reached) setTimeout(() => window.location.reload(), 1500);
       return;
     }
-    renderResult(payload);
-    updateStatus(payload.remaining);
+    lastResult = payload.result;
+    lastWarnings = payload.warnings || [];
+    lastCompact = payload.compact || '';
+    lastRaw = raw;
+
+    renderDetailed(lastResult, lastWarnings);
+    renderCompact(lastCompact);
+    renderFieldsTable(lastResult);
+    updateSummary(lastResult, lastWarnings);
+    updateStatusBadge(payload.remaining);
+    exportStatus.textContent = '';
   } catch (e) {
-    output.innerHTML = `<span class="err-line">Request failed: ${escapeHtml(e.message)}</span>`;
+    outputDetailed.innerHTML = `<span class="err-line">Request failed: ${escapeHtml(e.message)}</span>`;
   } finally {
-    parseBtn.disabled = false; parseBtn.textContent = '⚡ Parse Message';
+    parseBtn.disabled = false; parseBtn.textContent = '⚡ PARSE MESSAGE';
   }
 });
 
+// ---- Clear / Load file ----
 document.getElementById('clearBtn').addEventListener('click', () => {
-  rawInput.value = ''; output.textContent = 'Parse a message to see results here.';
+  rawInput.value = '';
+  outputDetailed.innerHTML = '<span class="empty">Parse a message to see results here.</span>';
+  outputCompact.innerHTML = '<span class="empty">Parse a message to see the compact output here.</span>';
+  outputFields.innerHTML = '<span class="empty">Parse a message to see the fields table here.</span>';
+  lastResult = null; lastWarnings = []; lastCompact = ''; lastRaw = '';
 });
 
+document.getElementById('loadFileBtn').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { rawInput.value = reader.result; };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ---- Copy ----
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+  let text = '';
+  if (activeTab === 'detailed') text = outputDetailed.innerText;
+  else if (activeTab === 'compact') text = outputCompact.innerText;
+  else text = outputFields.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    exportStatus.textContent = 'Copied to clipboard.';
+    exportStatus.style.color = 'var(--success)';
+  });
+});
+
+// ---- License key redeem ----
 const redeemBtn = document.getElementById('redeemBtn');
 if (redeemBtn) {
   redeemBtn.addEventListener('click', async () => {
@@ -213,15 +460,13 @@ if (redeemBtn) {
     try {
       const resp = await fetch('/redeem', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({key})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
       });
       const payload = await resp.json();
       redeemStatus.textContent = payload.message;
       redeemStatus.style.color = payload.ok ? 'var(--success)' : 'var(--error)';
-      if (payload.ok) {
-        setTimeout(() => window.location.reload(), 900);
-      }
+      if (payload.ok) setTimeout(() => window.location.reload(), 900);
     } catch (e) {
       redeemStatus.textContent = 'Request failed.';
       redeemStatus.style.color = 'var(--error)';
@@ -230,6 +475,55 @@ if (redeemBtn) {
     }
   });
 }
+
+// ---- Export (auto-download) ----
+async function exportFile(fmt) {
+  if (!lastRaw.trim()) {
+    exportStatus.textContent = 'Parse a message first.';
+    exportStatus.style.color = 'var(--warning)';
+    return false;
+  }
+  exportStatus.textContent = `Preparing ${fmt.toUpperCase()}…`;
+  exportStatus.style.color = 'var(--text-dim)';
+  try {
+    const resp = await fetch(`/export/${fmt}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw: lastRaw })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'Export failed.' }));
+      exportStatus.textContent = err.error || 'Export failed.';
+      exportStatus.style.color = 'var(--error)';
+      if (err.limit_reached) setTimeout(() => window.location.reload(), 1500);
+      return false;
+    }
+    const blob = await resp.blob();
+    const cd = resp.headers.get('Content-Disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : `report.${fmt}`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    exportStatus.textContent = `Downloaded ${filename}`;
+    exportStatus.style.color = 'var(--success)';
+    return true;
+  } catch (e) {
+    exportStatus.textContent = 'Export request failed: ' + e.message;
+    exportStatus.style.color = 'var(--error)';
+    return false;
+  }
+}
+
+document.getElementById('exportTxtBtn').addEventListener('click', () => exportFile('txt'));
+document.getElementById('exportXlsxBtn').addEventListener('click', () => exportFile('xlsx'));
+document.getElementById('exportBothBtn').addEventListener('click', async () => {
+  const okTxt = await exportFile('txt');
+  await new Promise(r => setTimeout(r, 400)); // stagger so both downloads register
+  await exportFile('xlsx');
+});
 </script>
 
 </body>

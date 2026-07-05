@@ -5,7 +5,9 @@ Lets people use the parser via a shared link instead of the desktop GUI.
 All actual ISO 8583 decoding is delegated to visa_iso8583_parser_v1.py
 (unmodified) through visa_adapter.py (also unmodified from the desktop
 app's shared logic) — this file only adds: routing, the free-tries
-counter, and license-key unlocking.
+counter, license-key unlocking, and file export (TXT / Excel download,
+mirroring the desktop GUI's "Save TXT Report" / "Save Excel Workbook" /
+"Save Both" buttons).
 
 FREE TIER / LICENSING MODEL
 ----------------------------
@@ -29,18 +31,29 @@ CAVEATS (read before relying on this for revenue)
 3. Don't log or persist the raw pasted hex beyond the request lifecycle
    if people might paste real production card traffic — see the notice
    in the page footer.
+4. Exported TXT/XLSX reports are generated in-memory per request and
+   streamed straight to the browser as a download — nothing is written
+   to permanent disk storage on the server.
 """
 
 import os
+import io
 import re
 import json
 import secrets
+import tempfile
 from datetime import datetime, timezone
 
-from flask import Flask, request, jsonify, session, render_template
+from flask import Flask, request, jsonify, session, render_template, send_file
 
 import visa_iso8583_parser_v1 as visa_parser
-from visa_adapter import decode_visa_message, _extract_rrn, _extract_mti
+from visa_adapter import (
+    decode_visa_message,
+    _prepare_hex_input,
+    _extract_rrn,
+    _extract_mti,
+    HAS_OPENPYXL,
+)
 
 app = Flask(__name__)
 
@@ -85,6 +98,13 @@ def _redeem_key(key: str):
     return True, "Key accepted — unlimited parsing unlocked for this session."
 
 
+def _within_quota():
+    """True if the current session is allowed to parse/export right now."""
+    session.setdefault("parses_used", 0)
+    session.setdefault("unlocked", False)
+    return session["unlocked"] or session["parses_used"] < FREE_PARSE_LIMIT
+
+
 # ── routes ────────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
@@ -96,6 +116,7 @@ def index():
         remaining=remaining,
         unlocked=session["unlocked"],
         free_limit=FREE_PARSE_LIMIT,
+        has_openpyxl=HAS_OPENPYXL,
     )
 
 
@@ -146,6 +167,74 @@ def parse_message():
         "compact": compact,
         "remaining": remaining,
     })
+
+
+@app.route("/export/<fmt>", methods=["POST"])
+def export_report(fmt):
+    """
+    Re-parses the same raw hex the browser already decoded and streams a
+    TXT or XLSX report back as a file download — same report format as
+    the desktop GUI's "Save TXT Report" / "Save Excel Workbook" buttons
+    (visa_parser.write_txt_report / write_xlsx_report, unmodified).
+
+    Nothing is written to persistent disk: the report is built in a
+    short-lived temp file, read back into memory, deleted immediately,
+    then sent to the browser.
+    """
+    if fmt not in ("txt", "xlsx"):
+        return jsonify({"error": "Unsupported export format."}), 400
+
+    if fmt == "xlsx" and not HAS_OPENPYXL:
+        return jsonify({"error": "Excel export isn't available on this server (openpyxl not installed)."}), 400
+
+    if not _within_quota():
+        return jsonify({
+            "error": f"You've used all {FREE_PARSE_LIMIT} free parses. Enter a license key above to keep going.",
+            "limit_reached": True,
+        }), 402
+
+    data = request.get_json(silent=True) or {}
+    raw = data.get("raw", "")
+    if not raw.strip():
+        return jsonify({"error": "Nothing to export — paste and parse a message first."}), 400
+
+    hex_str = _prepare_hex_input(raw)
+    if not hex_str.strip():
+        return jsonify({"error": "No hex characters found in input."}), 400
+
+    try:
+        compact, rows = visa_parser.parse_message_full(hex_str)
+    except Exception as e:
+        return jsonify({"error": f"Parser error: {e}"}), 400
+
+    mti = compact.split(":", 1)[0].strip()
+    name = visa_parser.get_report_name(rows, mti)
+    raw_hex_for_report = raw.strip()
+
+    tmp_path = None
+    try:
+        fd, tmp_path = tempfile.mkstemp(suffix=f".{fmt}")
+        os.close(fd)
+
+        if fmt == "txt":
+            visa_parser.write_txt_report(tmp_path, raw_hex_for_report, compact, rows)
+            mimetype = "text/plain; charset=utf-8"
+        else:
+            visa_parser.write_xlsx_report(tmp_path, raw_hex_for_report, compact, rows)
+            mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        with open(tmp_path, "rb") as f:
+            file_bytes = f.read()
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    return send_file(
+        io.BytesIO(file_bytes),
+        as_attachment=True,
+        download_name=f"{name}.{fmt}",
+        mimetype=mimetype,
+    )
 
 
 @app.route("/healthz")

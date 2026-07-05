@@ -140,7 +140,13 @@ function renderResult(payload) {
   }
   if (r.FIELDS) {
     html += `<br><br><div class="field-name">DATA ELEMENTS</div>`;
-    for (const [fname, fval] of Object.entries(r.FIELDS)) {
+    const sortedFields = Object.entries(r.FIELDS).sort((a, b) => {
+    const numA = parseInt(a[0].match(/\d+/)[0]);
+    const numB = parseInt(b[0].match(/\d+/)[0]);
+    return numA - numB;
+});
+
+for (const [fname, fval] of sortedFields) {
       html += `<br><div class="field-name">${escapeHtml(fname)}</div>`;
       if (typeof fval === 'object') {
         for (const [k, v] of Object.entries(fval)) {

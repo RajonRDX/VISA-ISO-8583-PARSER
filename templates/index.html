@@ -25,6 +25,25 @@
   header h1 span { color: var(--accent); margin-right: 8px; }
   header .sub { font-size: 12px; color: #90B4CC; }
 
+  .credit-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .credit-name {
+    color: var(--highlight); font-weight: bold; font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .credit-sep { color: #3E5A78; font-size: 12px; }
+  .credit-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: #90B4CC; text-decoration: none; font-size: 12px;
+    padding: 4px 10px; border-radius: 14px; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); transition: all 0.15s ease;
+  }
+  .credit-link:hover {
+    color: var(--accent); border-color: var(--accent); background: rgba(0,200,160,0.08);
+  }
+  .credit-link .icon { font-size: 13px; }
+
   main {
     max-width: 1500px; margin: 20px auto; padding: 0 16px;
     display: grid; grid-template-columns: 4fr 6fr 2.4fr; gap: 14px;
@@ -132,7 +151,16 @@
 
 <header>
   <h1><span>⬡</span>VisaNet ISO 8583 Decoder</h1>
-  <div class="sub">VisaNet Authorization-Only Online Messages &middot; Eff. 20 Apr 2026</div>
+  <div class="sub credit-bar">
+    <span class="credit-name">Created by Mehedi Hasan Rajon</span>
+    <span class="credit-sep">|</span>
+    <a class="credit-link" href="https://wa.me/8801711020174" target="_blank" rel="noopener">
+      <span class="icon">📱</span> License / Purchase: 01711020174
+    </a>
+    <a class="credit-link" href="mailto:rajonrdx007@gmail.com">
+      <span class="icon">✉️</span> rajonrdx007@gmail.com
+    </a>
+  </div>
 </header>
 
 <main>

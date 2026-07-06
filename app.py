@@ -46,13 +46,14 @@ from datetime import datetime, timezone
 
 from flask import Flask, request, jsonify, session, render_template, send_file
 
-import visa_iso8583_parser_v1 as visa_parser
+import visa_iso8583_parser_v2 as visa_parser
 from visa_adapter import (
     decode_visa_message,
     _prepare_hex_input,
     _extract_rrn,
     _extract_mti,
     HAS_OPENPYXL,
+    HAS_FIELD_DETAILS,
 )
 
 app = Flask(__name__)
@@ -117,6 +118,7 @@ def index():
         unlocked=session["unlocked"],
         free_limit=FREE_PARSE_LIMIT,
         has_openpyxl=HAS_OPENPYXL,
+        has_field_details=HAS_FIELD_DETAILS,
     )
 
 
@@ -173,19 +175,23 @@ def parse_message():
 def export_report(fmt):
     """
     Re-parses the same raw hex the browser already decoded and streams a
-    TXT or XLSX report back as a file download — same report format as
-    the desktop GUI's "Save TXT Report" / "Save Excel Workbook" buttons
-    (visa_parser.write_txt_report / write_xlsx_report, unmodified).
+    TXT, XLSX, or field-Details report back as a file download — same
+    report formats as the desktop GUI's "Save TXT Report" / "Save Excel
+    Workbook" / "Save Field Details" buttons (visa_parser.write_txt_report
+    / write_xlsx_report / write_detail_report, unmodified).
 
     Nothing is written to persistent disk: the report is built in a
     short-lived temp file, read back into memory, deleted immediately,
     then sent to the browser.
     """
-    if fmt not in ("txt", "xlsx"):
+    if fmt not in ("txt", "xlsx", "details"):
         return jsonify({"error": "Unsupported export format."}), 400
 
     if fmt == "xlsx" and not HAS_OPENPYXL:
         return jsonify({"error": "Excel export isn't available on this server (openpyxl not installed)."}), 400
+
+    if fmt == "details" and not HAS_FIELD_DETAILS:
+        return jsonify({"error": "Field details export isn't available on this server (visa_field_details.py not found)."}), 400
 
     if not _within_quota():
         return jsonify({
@@ -213,15 +219,22 @@ def export_report(fmt):
 
     tmp_path = None
     try:
-        fd, tmp_path = tempfile.mkstemp(suffix=f".{fmt}")
+        suffix = ".xlsx" if fmt == "xlsx" else ".txt"
+        fd, tmp_path = tempfile.mkstemp(suffix=suffix)
         os.close(fd)
 
         if fmt == "txt":
             visa_parser.write_txt_report(tmp_path, raw_hex_for_report, compact, rows)
             mimetype = "text/plain; charset=utf-8"
-        else:
+            download_name = f"{name}.txt"
+        elif fmt == "xlsx":
             visa_parser.write_xlsx_report(tmp_path, raw_hex_for_report, compact, rows)
             mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            download_name = f"{name}.xlsx"
+        else:  # details
+            visa_parser.write_detail_report(tmp_path, rows)
+            mimetype = "text/plain; charset=utf-8"
+            download_name = f"{name}_details.txt"
 
         with open(tmp_path, "rb") as f:
             file_bytes = f.read()
@@ -232,7 +245,7 @@ def export_report(fmt):
     return send_file(
         io.BytesIO(file_bytes),
         as_attachment=True,
-        download_name=f"{name}.{fmt}",
+        download_name=download_name,
         mimetype=mimetype,
     )
 

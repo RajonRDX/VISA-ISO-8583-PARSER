@@ -23,13 +23,36 @@ GUI.
 import re
 
 # -- the untouched parser engine ---------------------------------------------
-import visa_iso8583_parser_v1 as visa_parser
+import visa_iso8583_parser_v2 as visa_parser
 
 try:
     import openpyxl  # noqa: F401  (used internally by visa_parser.write_xlsx_report)
     HAS_OPENPYXL = True
 except ImportError:
     HAS_OPENPYXL = False
+
+# visa_field_details.py backs visa_parser's write_detail_report()/
+# get_value_detail(). Imported here (not just re-used via visa_parser) so
+# we can check *which* fields have a value-detail lookup available, to
+# flag them in the UI.
+try:
+    import visa_field_details as _field_details
+    HAS_FIELD_DETAILS = True
+except ImportError:
+    _field_details = None
+    HAS_FIELD_DETAILS = False
+
+
+def _label_has_detail(label: str) -> bool:
+    """True if visa_field_details.py has a value-meaning lookup for this
+    compact-format label (e.g. 'F39', 'F62.1', 'F104.57.01')."""
+    if not HAS_FIELD_DETAILS:
+        return False
+    return (
+        label in _field_details.DETAIL_FUNCS
+        or label in _field_details._DIRECT_LOOKUP_LABELS
+        or label in _field_details.VALUE_TABLES
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -196,11 +219,14 @@ def decode_visa_message(raw_msg: str):
         warnings.append(f"⚠ Could not summarize bitmap for display: {e}")
 
     fields_out = {}
+    fields_with_detail = []
     parse_errors = {}
     for fnum in sorted(fields):
         entry = fields[fnum]
         key = f"F{fnum}  {entry['desc']}"
         items = entry["items"]
+        if any(_label_has_detail(label) for label, _val in items):
+            fields_with_detail.append(key)
         if len(items) == 1 and items[0][0] == f"F{fnum}":
             val = items[0][1]
             fields_out[key] = {"Value": val}
@@ -210,6 +236,12 @@ def decode_visa_message(raw_msg: str):
             if isinstance(val, str) and val.startswith("<parse-error:"):
                 parse_errors[label] = val
     result["FIELDS"] = fields_out
+    if fields_with_detail:
+        # Field keys (same strings used as FIELDS' top-level keys) for
+        # which visa_field_details.py has a value-meaning lookup. The
+        # front end uses this to show an "ℹ details in export" marker
+        # rather than duplicating the lookup text inline.
+        result["FIELDS_WITH_DETAIL"] = fields_with_detail
 
     if parse_errors:
         result["PARSE_ERRORS"] = parse_errors

@@ -123,6 +123,11 @@
   .indent { margin-left: 14px; }
   .warn-line { color: var(--warning); }
   .err-line { color: var(--error); }
+  .detail-flag {
+    font-size: 10px; color: var(--highlight); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1px 6px; margin-left: 6px; cursor: help;
+    white-space: nowrap;
+  }
   .mti { color: var(--highlight); font-weight: bold; }
   .bitmap { color: #A8D8EA; }
   .empty { color: var(--text-dim); font-style: italic; }
@@ -240,9 +245,13 @@ Example: 3230303030313031383030…  (header + MTI + bitmaps + fields, hex-encode
     <h2>▸ Export</h2>
     <button class="block normal" id="exportTxtBtn">💾 Save TXT Report</button>
     <button class="block normal" id="exportXlsxBtn" {% if not has_openpyxl %}disabled{% endif %}>📊 Save Excel Workbook</button>
-    <button class="block accent" id="exportBothBtn" {% if not has_openpyxl %}disabled{% endif %}>⬇ Save Both (TXT + Excel)</button>
+    <button class="block normal" id="exportDetailsBtn" {% if not has_field_details %}disabled{% endif %}>📄 Save Field Details (.txt)</button>
+    <button class="block accent" id="exportBothBtn" {% if not has_openpyxl %}disabled{% endif %}>⬇ Save All (TXT + Excel + Details)</button>
     {% if not has_openpyxl %}
     <div style="font-size:11px; color:var(--warning); margin-top:4px;">⚠ openpyxl not installed on server<br>Excel export disabled</div>
+    {% endif %}
+    {% if not has_field_details %}
+    <div style="font-size:11px; color:var(--warning); margin-top:4px;">⚠ visa_field_details.py not found on server<br>Field details export disabled</div>
     {% endif %}
     <div id="exportStatus" style="font-size:11px; color:var(--text-dim); margin-top:8px;"></div>
   </div>
@@ -324,8 +333,12 @@ function renderDetailed(result, warnings) {
   }
   if (result.FIELDS) {
     html += '<div class="section">▸ DATA ELEMENTS</div>';
+    const detailKeys = result.FIELDS_WITH_DETAIL || [];
     for (const [fname, fval] of sortedFieldEntries(result.FIELDS)) {
-      html += `<div class="field-name">${escapeHtml(fname)}</div>`;
+      const detailBadge = detailKeys.includes(fname)
+        ? ' <span class="detail-flag" title="Value meaning available — download Field Details (.txt) to see it">ℹ details in export</span>'
+        : '';
+      html += `<div class="field-name">${escapeHtml(fname)}${detailBadge}</div>`;
       if (typeof fval === 'object') {
         for (const [k, v] of Object.entries(fval)) {
           if (v) html += `<div class="indent"><span class="field-key">${escapeHtml(k)}:</span> <span class="field-val">${escapeHtml(v)}</span></div>`;
@@ -360,17 +373,19 @@ function renderFieldsTable(result) {
     return;
   }
   let rows = '';
+  const detailKeys = result.FIELDS_WITH_DETAIL || [];
   for (const [fname, fval] of sortedFieldEntries(result.FIELDS)) {
     const parts = fname.split(/\s+/);
     const fnumStr = parts[0];
     const nameLabel = parts.slice(1).join(' ');
+    const hasDetail = detailKeys.includes(fname);
     const items = (typeof fval === 'object')
       ? Object.entries(fval).filter(([, v]) => v)
       : [['Value', fval]];
     items.forEach(([k, v], idx) => {
       rows += `<tr>
         <td>${idx === 0 ? escapeHtml(fnumStr) : ''}</td>
-        <td>${idx === 0 ? escapeHtml(nameLabel) : ''}</td>
+        <td>${idx === 0 ? escapeHtml(nameLabel) : ''}${idx === 0 && hasDetail ? ' <span class="detail-flag" title="Value meaning available — download Field Details (.txt) to see it">ℹ</span>' : ''}</td>
         <td>${escapeHtml(k)}</td>
         <td>${escapeHtml(String(v))}</td>
       </tr>`;
@@ -547,10 +562,13 @@ async function exportFile(fmt) {
 
 document.getElementById('exportTxtBtn').addEventListener('click', () => exportFile('txt'));
 document.getElementById('exportXlsxBtn').addEventListener('click', () => exportFile('xlsx'));
+document.getElementById('exportDetailsBtn').addEventListener('click', () => exportFile('details'));
 document.getElementById('exportBothBtn').addEventListener('click', async () => {
-  const okTxt = await exportFile('txt');
-  await new Promise(r => setTimeout(r, 400)); // stagger so both downloads register
+  await exportFile('txt');
+  await new Promise(r => setTimeout(r, 400)); // stagger so downloads register separately
   await exportFile('xlsx');
+  await new Promise(r => setTimeout(r, 400));
+  await exportFile('details');
 });
 </script>
 
